@@ -1,147 +1,203 @@
-#  вариант 2
-import csv
-import os
-from time import sleep
+import json  # Импорт модуля JSON для работы с данными в формате JSON
 
-RED = '\u001b[41m'
-GREEN = '\u001b[42m'
-BLUE = "\u001b[44m"
-WHITE = '\u001b[47m'
-BLACK = "\u001b[40m"
-END = '\u001b[0m'
+from customtkinter import *  # Импорт библиотеки customtkinter для настраиваемых виджетов Tkinter
 
-# задание 1
-print('Задание 1:')
+from customtkinter import filedialog as fd  # Импорт модуля filedialog из библиотеки customtkinter
 
+import pathlib  # Импорт модуля pathlib для работы с путями к файлам
 
-def flag_ban():
-    print(GREEN + ' ' * 40 + END)
-    for i in range(3):
-        print(GREEN + '  ' * (6 - i * 2) + RED + '  ' * (2 + 2 * i) + RED + '  ' * (2 + 2 * i) + GREEN + '  ' * ((6 - 2 * i) + 4) + END)
+from PIL import Image, ImageTk  # Импорт модулей Image и ImageTk из библиотеки PIL (Python Imaging Library)
 
-    for i in range(3):
-        print(GREEN + '  ' * (4 + 2 * i) + RED + '  ' * (4 - 2 * i) + RED + '  ' * (4 - i * 2) + GREEN + '  ' * ((4 + 2 * i) + 4) + END)
+from itertools import count, cycle  # Импорт функций count и cycle из модуля itertools
 
+import os  # Импорт модуля os для взаимодействия с операционной системой
 
-flag_ban()
-print()
+import pandas as pd  # Импорт библиотеки pandas для работы с данными в формате CSV
 
-print('Задание 2:')
-#  задание 2
-n = 10
+# Определение пользовательского класса ImageLabel, наследующего от CTkLabel (настраиваемого виджета Label)
 
+class ImageLabel(CTkLabel):
 
-def uzor():
-    for k in range(1):
-        print((BLACK + '  ' * (5) + WHITE + '  ' * (3) + END) * n)
-        print((BLACK + '  ' * (1) + WHITE + '  ' * (3) + BLACK + '  ' * (1) + WHITE + '  ' * (3) + END) * n)
-        print((BLACK + '  ' * (1) + WHITE + '  ' * (1) + BLACK + '  ' * (3) + WHITE + '  ' * (3) + END) * n)
-        print((BLACK + '  ' * (1) + WHITE + '  ' * (1) + BLACK + '  ' * (1) + WHITE + '  ' * (5) + END) * n)
-        print((BLACK + '  ' * (1) + WHITE + '  ' * (1) + BLACK + '  ' * (6) + END) * n)
+    def load(self, im):
 
+        """
 
-uzor()
-print()
+        Загружает и отображает анимированное изображение в виджете Label.
 
-print('Задание 3:')
-# задание 3
+        Параметры:
 
+            im (str): Путь к изображению.
 
-def array_init(array_in, st):
-    for i in range(10):
-        for j in range(10):
-            if j == 0:
-                array_in[i][j] = round(st * (8 - i) + st, 1)
-            if i == 9:
-                array_in[i][j] = round(j, 1)
-    return array_in
+        """
 
+        im = Image.open(im)  # Открывает изображение с помощью PIL
 
-def array_fill(array_fi, res, st):
-    for i in range(9):
-        for k in range(10):
-            if abs(array_fi[i][0] - res[9 - k]) < st:
-                for j in range(9):
-                    if 8 - j == k:
-                        array_fi[i][j + 1] = 1
-    return array_fi
+        frames = []  # Список для хранения отдельных кадров анимации
 
+        try:
 
-def print_plot(plot):
-    for i in range(9):
-        line = ''
-        for j in range(10):
-            if j == 0:
-                line += WHITE + str(plot[i][j])
-            if plot[i][j] == 0:
-                line += '  '
-            elif plot[i][j] == 1:
-                line += RED + '  ' + WHITE
-        line += END
-        print(line)
-    print(WHITE + '0   1 2 3 4 5 6 7 8 9' + END)
+            # Итерация по кадрам анимированного изображения
 
+            for i in count(1):
 
-array_plot = [[0 for col in range(10)] for row in range(10)]
-result = [0 for i in range(10)]
+                frames.append(ImageTk.PhotoImage(im.copy()))  # Добавление каждого кадра в список frames
 
-for i in range(10):
-    result[i] = 2 * i + 3
+                im.seek(i)
 
+        except EOFError:
 
-step = round(abs((result[9] - result[0])) / 9, 1)
+            pass
 
-array_init(array_plot, step)
-array_fill(array_plot, result, step)
-print_plot(array_plot)
-print()
+        self.frames = cycle(frames)  # Создание итератора, перебирающего кадры
 
-print('Задание 4:')
-# задание 4
-with open('books.csv', 'r') as csvfile:
-    books = csv.reader(csvfile, delimiter=';')
+        self.delay = im.info['duration']  # Получение задержки между кадрами из метаданных изображения
 
-    big = 0
-    small = 0
-    z = -1
-    for row in list(books)[1:]:
-        year = row[6][:4]
+        if len(frames) == 1:
 
-        if int(year) <= 2015:
-            small += 1
+            self.configure(image=next(self.frames))  # Отображение первого кадра, если их только один
+
         else:
-            big += 1
 
-summa = small + big
-a = small * 100 // summa
-b = big * 100 // summa + 1
+            self.next_frame()  # Отображение следующего кадра
 
-print("До 2015    " + BLUE + '  ' * a + END + ' ' + str(a) + '%')
-print()
-print("После 2015 " + BLUE + '  ' * b + END + ' ' + str(b) + '%')
-print()
+    def next_frame(self):
 
-#  доп задание
-t = 0.5
-os.system('cls')
-print(WHITE + '  ' * 5 + BLUE + '  ' * 5 + RED + '  ' * 5 + END)
-sleep(t)
-os.system('cls')
-print(RED + '  ' * 3 + WHITE + '  ' * 5 + BLUE + '  ' * 5 + RED + '  ' * 2 + END)
-sleep(t)
-os.system('cls')
-print(RED + '  ' * 5 + WHITE + '  ' * 5 + BLUE + '  ' * 5 + RED + '  ' * 0 + END)
-sleep(t)
-os.system('cls')
-print(BLUE + '  ' * 3 + RED + '  ' * 5 + WHITE + '  ' * 5 + BLUE + '  ' * 2 + END)
-sleep(t)
-os.system('cls')
-print(BLUE + '  ' * 5 + RED + '  ' * 5 + WHITE + '  ' * 5 + END)
-sleep(t)
-os.system('cls')
-print(WHITE + '  ' * 3 + BLUE + '  ' * 5 + RED + '  ' * 5 + WHITE + '  ' * 2 + END)
-sleep(t)
-os.system('cls')
-print(WHITE + '  ' * 5 + BLUE + '  ' * 5 + RED + '  ' * 5 + END)
-sleep(t)
-os.system('pause')
+        """
+
+        Отображает следующий кадр анимированного изображения.
+
+        """
+
+        if self.frames:
+
+            self.configure(image=next(self.frames))  # Отображение следующего кадра
+
+            self.after(self.delay, self.next_frame)  # Планирование отображения следующего кадра
+
+# Функция, обрабатывающая событие нажатия кнопки "Выбрать json файл"
+
+def callback():
+
+    """
+
+    Обработчик события нажатия кнопки "Выбрать json файл".
+
+    Открывает диалоговое окно выбора файла и записывает путь к файлу в поле ввода.
+
+    """
+
+    name = fd.askopenfilename()  # Открытие диалогового окна выбора файла и получение пути к выбранному файлу
+
+    ePath.configure(state='normal')  # Включение режима редактирования для поля ввода
+
+    ePath.delete('1', 'end')  # Очистка поля ввода
+
+    ePath.insert('1', name)  # Вставка пути к файлу в поле ввода
+
+    ePath.configure(state='readonly')  # Установка поля ввода в режим только для чтения
+
+# Функция, которая конвертирует JSON файл в формат CSV
+
+def convert():
+
+    """
+
+    Конвертирует JSON файл в формат CSV.
+
+    Читает данные из JSON файла, формирует строку CSV и сохраняет ее в новый CSV файл.
+
+    """
+
+    json_file = ePath.get()  # Получение пути к JSON файлу из поля ввода
+
+    csv_file = pathlib.Path(json_file)  # Создание объекта Path из пути к JSON файлу
+
+    csv_file = csv_file.stem + '.csv'  # Получение имени файла без расширения и добавление расширения ".csv"
+
+    try:
+
+        with open(json_file, 'r') as f:
+
+            data = json.loads(f.read())  # Чтение JSON данных из файла и их преобразование
+
+        output = ','.join([*data[0]])  # Формирование заголовка CSV строки с помощью ключей первого объекта
+
+        print(output)
+
+        for obj in data:
+
+            output += f'\n{obj["id"]},{obj["first_name"]},{obj["last_name"]}'  # Добавление строк CSV с значениями из объектов JSON
+
+        print(output)
+
+        with open(csv_file, 'w') as f:
+
+            f.write(output)  # Запись CSV строки в новый CSV файл
+
+    except Exception as ex:
+
+        print(f'Error: {str(ex)}')
+
+    CTkLabel(root, text='Конвертация завершена', font=('Arial', 15)).pack(pady=10)
+
+# Функция, которая открывает выбранный CSV файл в Excel
+
+def open_csv_file():
+
+    """
+
+    Открывает выбранный CSV файл в Excel.
+
+    """
+
+    file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])  # Открытие диалогового окна выбора CSV файла
+
+    if file_path:
+
+        df = pd.read_csv(file_path)  # Чтение CSV файла в объект DataFrame библиотеки pandas
+
+        excel_file_path = os.path.splitext(file_path)[0] + ".xlsx"  # Создание пути для соответствующего файла Excel
+
+        df.to_excel(excel_file_path, index=False)  # Преобразование DataFrame в формат Excel и сохранение
+
+        os.startfile(excel_file_path)  # Открытие файла XLSX в Excel
+
+if __name__ == '__main__':
+
+    # Инициализация пользовательской библиотеки
+
+    set_appearance_mode("dark")  # Установка темного режима интерфейса
+
+    set_default_color_theme("dark-blue")  # Установка темы оформления по умолчанию
+
+    root = CTk()  # Создание корневого окна с использованием настраиваемого Tkinter
+
+    lb = ImageLabel(root, text="")  # Создание экземпляра виджета ImageLabel
+
+    lb.pack()
+
+    lb.load('test.gif')  # Загрузка и отображение анимированного изображения в виджете
+
+    root.title('Конвертер json в csv')  # Установка заголовка окна
+
+    root.geometry('600x600+400+400')  # Установка размеров и позиции окна
+
+    root.resizable(width=False, height=False)  # Запрет изменения размеров окна
+
+    CTkButton(root, text='Выбрать json файл', font=('Arial', 15), command=callback).pack(pady=10)  # Создание и размещение кнопки выбора JSON файла
+
+    lbPath = CTkLabel(root, text='Путь к файлу:', font=('Arial', 15))  # Создание метки для пути к файлу
+
+    lbPath.pack()  # Размещение метки в окне
+
+    ePath = CTkEntry(root, width=400, state='readonly')  # Создание поля ввода для отображения пути к файлу
+
+    ePath.pack(pady=10)  # Размещение поля ввода в окне
+
+    btnConvert = CTkButton(root, text='Конвертировать', font=('Arial', 15), command=convert).pack(pady=10)  # Создание и размещение кнопки конвертации
+
+    open_button = CTkButton(root, text="Открыть CSV файл", command=open_csv_file)  # Создание кнопки открытия CSV файла
+
+    open_button.pack()  # Размещение кнопки в окне
+
+    root.mainloop()  # Запуск главного цикла событий
